@@ -17,5 +17,5 @@ async def ping(ctx):
     await ctx.send('Pong!')
 
 # ดึง Token จาก Environment Variable (หรือใส่ Token ตรงๆ ในเครื่องหมายอัญประกาศได้)
-TOKEN = os.getenv('')
+TOKEN = os.getenv('BOT_TOKEN')
 bot.run(TOKEN)
