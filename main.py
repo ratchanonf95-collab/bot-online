@@ -15,7 +15,7 @@ async def on_ready():
         synced = await bot.tree.sync()
         print(f"✅ ซิงก์คำสั่งเรียบร้อยแล้ว {len(synced)} คำสั่ง")
     except Exception as e:
-        print(f"❌ ซิงก์คำสั่งล้มเหลว: {e}")
+        print(f"❌ เกิดข้อผิดพลาดในการซิงก์คำสั่ง: {e}")
     print(f"✅ บอทออนไลน์แล้วในชื่อ: {bot.user}")
 
 @bot.tree.command(name="join", description="สั่งให้บอทเข้าห้องเสียง")
