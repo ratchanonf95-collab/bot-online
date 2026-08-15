@@ -3,7 +3,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+# 🟢 เปิดใช้งาน Intents ให้ครบถ้วน
 intents = discord.Intents.default()
+intents.message_content = True
+intents.voice_states = True
+
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 
@@ -17,14 +21,16 @@ async def on_ready():
     print(f"✅ บอทออนไลน์แล้วในชื่อ: {bot.user}")
 
 
-# 1. คำสั่ง /join - สามารถเลือกห้องเสียงที่ต้องการได้
+# 1. คำสั่ง /join - สั่งเข้าห้องเสียง
 @bot.tree.command(
     name="join", 
     description="สั่งให้บอทเข้าห้องเสียง (เลือกระบุห้อง หรือไม่ระบุเพื่อเข้าห้องที่คุณอยู่)"
 )
 @app_commands.describe(channel="เลือกห้องเสียงที่ต้องการให้บอทเข้าไป")
 async def join(interaction: discord.Interaction, channel: discord.VoiceChannel = None):
-    # ถ้าผู้ใช้ระบุช่องมา ให้ใช้ช่องนั้น ถ้าไม่ระบุ ให้ใช้ช่องที่ผู้ใช้อยู่ปัจจุบัน
+    # เลื่อนเวลาตอบกลับเพื่อป้องกัน Timeout
+    await interaction.response.defer()
+    
     target_channel = channel or (interaction.user.voice.channel if interaction.user.voice else None)
 
     if target_channel:
@@ -32,25 +38,20 @@ async def join(interaction: discord.Interaction, channel: discord.VoiceChannel =
             await interaction.guild.voice_client.move_to(target_channel)
         else:
             await target_channel.connect()
-        await interaction.response.send_message(
-            f"🔊 เข้าห้อง **{target_channel.name}** เรียบร้อยแล้วครับ!"
-        )
+        await interaction.followup.send(f"🔊 เข้าห้อง **{target_channel.name}** เรียบร้อยแล้วครับ!")
     else:
-        await interaction.response.send_message(
-            "❌ กรุณาระบุห้องเสียง หรือเข้าไปอยู่ในห้องเสียงก่อนใช้คำสั่งครับ!", ephemeral=True
-        )
+        await interaction.followup.send("❌ กรุณาระบุห้องเสียง หรือเข้าไปอยู่ในห้องเสียงก่อนใช้คำสั่งครับ!", ephemeral=True)
 
 
 # 2. คำสั่ง /leave - สั่งให้ออกจากห้อง
 @bot.tree.command(name="leave", description="สั่งให้บอทออกจากห้องเสียง")
 async def leave(interaction: discord.Interaction):
+    await interaction.response.defer()
     if interaction.guild.voice_client:
         await interaction.guild.voice_client.disconnect()
-        await interaction.response.send_message("👋 ออกจากห้องเสียงเรียบร้อยแล้ว!")
+        await interaction.followup.send("👋 ออกจากห้องเสียงเรียบร้อยแล้ว!")
     else:
-        await interaction.response.send_message(
-            "❌ บอทไม่ได้อยู่ในห้องเสียงครับ", ephemeral=True
-        )
+        await interaction.followup.send("❌ บอทไม่ได้อยู่ในห้องเสียงครับ", ephemeral=True)
 
 
 TOKEN = os.getenv('BOT_TOKEN')
