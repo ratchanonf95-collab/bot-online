@@ -6,7 +6,7 @@ import nextcord
 from nextcord.ext import commands
 
 # ==================================================
-# 1. ระบบ Keep-Alive (รัน Web Server บน Background Thread)
+# 1. ระบบ Keep-Alive (รัน Web Server ใน Background Thread)
 # ==================================================
 app = Flask('')
 
@@ -65,8 +65,11 @@ async def join(
             except Exception:
                 pass
 
-        # บังคับ self_deaf=True ตั้งแต่บรรทัดแรกที่สั่ง connect เพื่อแก้ปัญหา Render โดนตัดสายใน 30 วินาที
-        vc = await channel.connect(reconnect=True, timeout=60.0, self_deaf=True)
+        # 1. เชื่อมต่อเข้าห้องเสียง (ใส่เฉพาะ reconnect และ timeout)
+        vc = await channel.connect(reconnect=True, timeout=60.0)
+
+        # 2. ปรับสถานะ Deafen (หูหนวก) แยกบรรทัด เพื่อลด Voice Traffic และคง Voice Handshake
+        await interaction.guild.change_voice_state(channel=channel, self_deaf=True)
 
         await interaction.followup.send(
             f"✅ บอทเข้าห้อง {channel.mention} เรียบร้อยแล้ว"
