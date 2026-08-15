@@ -6,7 +6,7 @@ import nextcord
 from nextcord.ext import commands
 
 # ==================================================
-# 1. ระบบ Keep-Alive Web Server (ป้องกัน Render สั่งดับบอท)
+# 1. ระบบ Keep-Alive (รันแบบ Background ไม่บล็อก Discord Bot)
 # ==================================================
 app = Flask('')
 
@@ -15,14 +15,15 @@ def home():
     return "Bot is alive and running!"
 
 def run_flask():
-    app.run(host='0.0.0.0', port=8080)
+    # กำหนด debug=False และ use_reloader=False เพื่อไม่ให้ Flask ดักจับ Process หลัก
+    app.run(host='0.0.0.0', port=8080, debug=False, use_reloader=False)
 
 def keep_alive():
     t = Thread(target=run_flask)
     t.daemon = True
     t.start()
 
-# เรียกใช้งาน Web Server ทันที
+# เรียกใช้งาน Web Server ใน Background Thread
 keep_alive()
 
 # ==================================================
@@ -58,7 +59,7 @@ async def join(
     try:
         voice = interaction.guild.voice_client
 
-        # หากมี Connection ค้างอยู่ ให้ทำการ disconnect ก่อนเพื่อเคลียร์ Handshake Socket
+        # เคลียร์ Connection เก่าเพื่อป้องกัน Socket ค้าง
         if voice:
             try:
                 await voice.disconnect(force=True)
@@ -66,10 +67,10 @@ async def join(
             except Exception:
                 pass
 
-        # เชื่อมต่อใหม่พร้อมเปิดการ Reconnect อัตโนมัติ
+        # เชื่อมต่อใหม่พร้อมตั้งค่า reconnect และ timeout
         vc = await channel.connect(reconnect=True, timeout=60.0)
         
-        # ปรับสถานะ Deafen บอท เพื่อป้องกัน Discord ตัดสายจากการไม่ส่งข้อมูลงเสียง
+        # ปรับสถานะ Deafen บอท เพื่อลด UDP Traffic ที่โดน Discord ตัดสาย
         await interaction.guild.change_voice_state(channel=channel, self_deaf=True)
 
         await interaction.followup.send(
