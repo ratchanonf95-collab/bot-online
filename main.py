@@ -1,31 +1,10 @@
 import os
 import asyncio
-from flask import Flask
-from threading import Thread
 import nextcord
 from nextcord.ext import commands
 
 # ==================================================
-# 1. ระบบ Keep-Alive (รัน Web Server ใน Background Thread)
-# ==================================================
-app = Flask('')
-
-@app.route('/')
-def home():
-    return "Bot is alive and running!"
-
-def run_flask():
-    app.run(host='0.0.0.0', port=8080, debug=False, use_reloader=False)
-
-def keep_alive():
-    t = Thread(target=run_flask)
-    t.daemon = True
-    t.start()
-
-keep_alive()
-
-# ==================================================
-# 2. ตั้งค่า Discord Bot
+# 1. ตั้งค่า Discord Bot
 # ==================================================
 intents = nextcord.Intents.all()
 bot = commands.Bot(intents=intents)
@@ -35,7 +14,7 @@ async def on_ready():
     print(f"✅ เข้าสู่ระบบสำเร็จ: {bot.user}")
 
 # ==================================================
-# 3. Slash Commands
+# 2. Slash Commands
 # ==================================================
 
 @bot.slash_command(
@@ -57,7 +36,6 @@ async def join(
     try:
         voice = interaction.guild.voice_client
 
-        # เคลียร์ Connection เก่าออกก่อนเสมอเพื่อป้องกัน Socket ค้าง
         if voice:
             try:
                 await voice.disconnect(force=True)
@@ -65,10 +43,7 @@ async def join(
             except Exception:
                 pass
 
-        # 1. เชื่อมต่อเข้าห้องเสียง (ใส่เฉพาะ reconnect และ timeout)
         vc = await channel.connect(reconnect=True, timeout=60.0)
-
-        # 2. ปรับสถานะ Deafen (หูหนวก) แยกบรรทัด เพื่อลด Voice Traffic และคง Voice Handshake
         await interaction.guild.change_voice_state(channel=channel, self_deaf=True)
 
         await interaction.followup.send(
@@ -105,7 +80,7 @@ async def leave(interaction: nextcord.Interaction):
     )
 
 # ==================================================
-# 4. รันบอท
+# 3. รันบอท
 # ==================================================
 TOKEN = os.getenv("DISCORD_TOKEN")
 
