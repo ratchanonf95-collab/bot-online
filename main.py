@@ -1,7 +1,7 @@
 import os
 import asyncio
 import nextcord
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 
 # ==================================================
 # 1. ตั้งค่า Discord Bot
@@ -12,11 +12,25 @@ bot = commands.Bot(intents=intents)
 @bot.event
 async def on_ready():
     print(f"✅ เข้าสู่ระบบสำเร็จ: {bot.user}")
+    if not voice_keep_alive.is_running():
+        voice_keep_alive.start()
 
 # ==================================================
-# 2. Slash Commands
+# 2. ระบบ Voice Keep-Alive (ป้องกันตัดสายทุก 20 วินาที)
 # ==================================================
+@tasks.loop(seconds=15)
+async def voice_keep_alive():
+    for guild in bot.guilds:
+        if guild.voice_client and guild.voice_client.is_connected():
+            try:
+                # ส่งสัญญาณ WebSocket Heartbeat ป้องกัน Discord มองว่า Idle
+                await guild.voice_client.ws.send_ping()
+            except Exception:
+                pass
 
+# ==================================================
+# 3. Slash Commands
+# ==================================================
 @bot.slash_command(
     name="join",
     description="ให้บอทเข้าห้องเสียงที่เลือก"
@@ -43,7 +57,10 @@ async def join(
             except Exception:
                 pass
 
+        # เชื่อมต่อแบบ Reconnect + Timeout 60s
         vc = await channel.connect(reconnect=True, timeout=60.0)
+        
+        # ตั้งค่า Deafen ช่วยลดการรับส่ง Volume Data
         await interaction.guild.change_voice_state(channel=channel, self_deaf=True)
 
         await interaction.followup.send(
@@ -80,7 +97,7 @@ async def leave(interaction: nextcord.Interaction):
     )
 
 # ==================================================
-# 3. รันบอท
+# 4. รันบอท
 # ==================================================
 TOKEN = os.getenv("DISCORD_TOKEN")
 
