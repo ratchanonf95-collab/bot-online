@@ -32,8 +32,8 @@ async def on_ready():
 # 2. Slash Commands
 # ==================================================
 
-@bot.slash_command(name="play", description="เล่นเพลงจาก YouTube (ใส่ลิงก์หรือชื่อเพลง)")
-async def play(
+@bot.slash_command(name="plays", description="เล่นเพลงจาก YouTube (ใส่ลิงก์หรือชื่อเพลง)")
+async def plays(
     interaction: nextcord.Interaction, 
     query: str
 ):
