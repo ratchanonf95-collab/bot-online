@@ -1,7 +1,9 @@
+import os
 import nextcord
 from nextcord.ext import commands
 
 intents = nextcord.Intents.all()
+
 bot = commands.Bot(intents=intents)
 
 
@@ -18,18 +20,9 @@ async def join(
     interaction: nextcord.Interaction,
     channel: nextcord.VoiceChannel
 ):
-    # ตรวจสอบว่าเป็นเซิร์ฟเวอร์
     if interaction.guild is None:
         return await interaction.response.send_message(
-            "❌ คำสั่งนี้ใช้ในเซิร์ฟเวอร์เท่านั้น"
-        )
-
-    # เช็กสิทธิ์ของบอท
-    permissions = channel.permissions_for(interaction.guild.me)
-
-    if not permissions.connect:
-        return await interaction.response.send_message(
-            f"❌ บอทไม่มีสิทธิ์เข้า {channel.mention}"
+            "❌ ใช้คำสั่งนี้ในเซิร์ฟเวอร์เท่านั้น"
         )
 
     await interaction.response.defer()
@@ -43,12 +36,12 @@ async def join(
             await channel.connect()
 
         await interaction.followup.send(
-            f"✅ เข้า {channel.mention} แล้ว"
+            f"✅ บอทเข้าห้อง {channel.mention} แล้ว"
         )
 
     except Exception as e:
         await interaction.followup.send(
-            f"❌ เข้าไม่ได้\n`{e}`"
+            f"❌ เกิดข้อผิดพลาด: `{e}`"
         )
 
 
@@ -62,14 +55,19 @@ async def leave(interaction: nextcord.Interaction):
 
     if not voice:
         return await interaction.response.send_message(
-            "❌ ตอนนี้บอทไม่ได้อยู่ในห้องเสียง"
+            "❌ บอทไม่ได้อยู่ในห้องเสียง"
         )
 
     await voice.disconnect()
 
     await interaction.response.send_message(
-        "✅ ออกจากห้องเสียงแล้ว"
+        "✅ บอทออกจากห้องเสียงแล้ว"
     )
 
 
-bot.run("BOT_TOKEN")
+TOKEN = os.getenv("DISCORD_TOKEN")
+
+if not TOKEN:
+    raise RuntimeError("ไม่พบ DISCORD_TOKEN ใน Environment Variables")
+
+bot.run(TOKEN)
