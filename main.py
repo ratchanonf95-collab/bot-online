@@ -1,7 +1,6 @@
 import os
 import discord
 from discord.ext import commands
-from keep_alive import keep_alive
 
 # เปิดใช้งาน Intents พื้นฐาน
 intents = discord.Intents.default()
@@ -16,9 +15,6 @@ async def on_ready():
 @bot.command()
 async def ping(ctx):
     await ctx.send('Pong!')
-
-# เรียกใช้งานเว็บ server จำลองเพื่อให้ Render ตรวจจับได้
-keep_alive()
 
 # ดึง Token จาก Environment Variable (หรือใส่ Token ตรงๆ ในเครื่องหมายอัญประกาศได้)
 TOKEN = os.getenv('')
