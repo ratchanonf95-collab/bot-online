@@ -1,2 +1,2 @@
 nextcord
-PyNaCl>=1.5.0
+PyNaCl
