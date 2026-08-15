@@ -104,7 +104,7 @@ async def leave(interaction: nextcord.Interaction):
 # ==================================================
 # 4. รันบอท
 # ==================================================
-TOKEN = os.getenv("DISCORD_TOKEN")
+TOKEN = os.getenv("TOKEN")
 
 if not TOKEN:
     raise RuntimeError("ไม่พบ DISCORD_TOKEN ใน Environment Variables")
